@@ -39,7 +39,7 @@ fun AccountView() {
                 )
                 Column{
                     Text("Abhishek Verma")
-                    Text("georgemdallas@my-own-personal-domain.com")
+                    Text("j472812@gmail.com")
                 }
                 IconButton(onClick = { /* Handle account options click */ }) {
                     Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)

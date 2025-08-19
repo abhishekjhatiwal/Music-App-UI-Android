@@ -60,7 +60,7 @@ fun AccountDialog(dialogOpen: MutableState<Boolean>) {
                 }
             },
             modifier = Modifier.fillMaxWidth().background(MaterialTheme.colors.primarySurface).padding(8.dp),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(10.dp),
             backgroundColor = Color.White,
             properties = DialogProperties(
                 dismissOnBackPress = true,

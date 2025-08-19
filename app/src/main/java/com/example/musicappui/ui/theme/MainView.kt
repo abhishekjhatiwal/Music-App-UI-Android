@@ -1,21 +1,30 @@
 package com.example.musicappui.ui.theme
 
-import ads_mobile_sdk.b
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -31,7 +40,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.wear.compose.material3.CurvedTextDefaults.backgroundColor
 import com.example.musicappui.MainViewModel
 import com.example.musicappui.Screen
 import com.example.musicappui.screensInDrawer
@@ -39,11 +47,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.primarySurface
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.wear.compose.material3.OpenOnPhoneDialogDefaults.Icon
 import com.example.musicappui.AccountDialog
+import com.example.musicappui.R
+import com.example.musicappui.screensInBottomNav
 
 
 //import androidx.compose.material3.MaterialTheme
@@ -54,6 +71,8 @@ fun MainView() {
     val scaffoldState = rememberScaffoldState()
     val scope: CoroutineScope = rememberCoroutineScope()
     val viewModel: MainViewModel = viewModel()
+    val isSheetFullScreen by remember { mutableStateOf(false) }
+    val modifier = if (isSheetFullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth()
     // Allous us to navigate between screens
     val controller: NavController = rememberNavController()
     val navBackStackEntry by controller.currentBackStackEntryAsState()
@@ -62,49 +81,159 @@ fun MainView() {
     val dialogOpen = remember { mutableStateOf(false) }
     val title =
         remember { mutableStateOf(currentScreen.title) } // change that to currentScreen.title
+    val modelSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded }
+    )
+    val roundedCornerRadious = if (isSheetFullScreen) 0.dp else 16.dp
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title.value) },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            scaffoldState.drawerState.open()
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = null
-                        )
-                    }
+    val bottomBar: @Composable () -> Unit = {
+        if (currentScreen is Screen.DrawerScreen || currentScreen is Screen.BottomScreen.Home) {
+            BottomNavigation(Modifier.wrapContentSize()) {
+                screensInBottomNav.forEach { item ->
+                    val isSelected = currentRoute == item.bRoute
+                    val tint = if (isSelected) Color.White else Color.Black
+                    BottomNavigationItem(
+                        selected = currentRoute == item.bRoute,
+                        onClick = { controller.navigate(item.bRoute)
+                            title.value = item.bTitle
+                                  },
+                        icon = {
+                            Icon(
+                                tint = tint,
+                                contentDescription = item.bTitle,
+                                painter = painterResource(id = item.icon)
+                            )
+                        },
+                        label = { Text(text = item.bTitle) },
+                        selectedContentColor = Color.White,
+                        unselectedContentColor = Color.Black
+                    )
                 }
-            )
-        }, scaffoldState = scaffoldState,
-//        snackbarHost = { SnackbarHost(hostState = scaffoldState) },
-        drawerContent = {
-            LazyColumn(Modifier.padding(16.dp)) {
-                items(screensInDrawer) { item ->
-                    DrawerItem(selected = currentRoute == item.dRoute, item = item) {
-                        scope.launch {
-                            scaffoldState.drawerState.close()
+            }
+        }
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = modelSheetState,
+        sheetShape = RoundedCornerShape(
+            topStart = roundedCornerRadious,
+            topEnd = roundedCornerRadious
+        ),
+        sheetContent = {
+            MoreBottomSheet()
+        }) {
+        Scaffold(
+            bottomBar = bottomBar,
+            topBar = {
+                TopAppBar(
+                    title = { Text(title.value) },
+                    actions = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                if (modelSheetState.isVisible) {
+                                    modelSheetState.hide()
+                                } else {
+                                    modelSheetState.show()
+                                }
+                            }
+                        }){
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = null
+                            )
                         }
-                        if (item.route != "add_account") {
-                            dialogOpen.value = true
-                        } else {
-                            controller.navigate(item.dRoute)
-                            title.value = item.dTitle
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                scaffoldState.drawerState.open()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+            }, scaffoldState = scaffoldState,
+//        snackbarHost = { SnackbarHost(hostState = scaffoldState) },
+            drawerContent = {
+                LazyColumn(Modifier.padding(16.dp)) {
+                    items(screensInDrawer) { item ->
+                        DrawerItem(selected = currentRoute == item.dRoute, item = item) {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                            if (item.route != "add_account") {
+                                dialogOpen.value = true
+                            } else {
+                                controller.navigate(item.dRoute)
+                                title.value = item.dTitle
+                            }
                         }
                     }
                 }
             }
+        ) { innerPadding ->
+            Navigation(controller, viewModel, innerPadding)
+            AccountDialog(dialogOpen = dialogOpen)
         }
-    ) { innerPadding ->
-        Navigation(controller, viewModel, innerPadding)
-        AccountDialog(dialogOpen = dialogOpen)
     }
 }
 
+@Composable
+fun MoreBottomSheet(modifier: Modifier = Modifier) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .background(MaterialTheme.colors.primarySurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(modifier = Modifier.padding(16.dp)) {
+                Icon(
+                    modifier = Modifier.padding(end = 8.dp),
+                    painter = painterResource(id = R.drawable.ic_setting),
+                    contentDescription = "Setting"
+                )
+                Text(
+                    text = "Settings",
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+            }
+            Row(modifier = Modifier.padding(16.dp)) {
+                Icon(
+                    modifier = Modifier.padding(end = 8.dp),
+                    painter = painterResource(id = R.drawable.ic_share),
+                    contentDescription = "Share"
+                )
+                Text(
+                    text = "Share",
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+            }
+            Row(modifier = Modifier.padding(16.dp)) {
+                Icon(
+                    modifier = Modifier.padding(end = 8.dp),
+                    painter = painterResource(id = R.drawable.ic_help),
+                    contentDescription = "Help"
+                )
+                Text(
+                    text = "Help",
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun DrawerItem(
@@ -140,10 +269,19 @@ fun Navigation(navController: NavController, viewModel: MainViewModel, pd: Paddi
         startDestination = Screen.DrawerScreen.AddAccount.route,
         modifier = Modifier.padding(pd)
     ) {
-        composable(Screen.DrawerScreen.AddAccount.route){
+        composable(Screen.BottomScreen.Home.bRoute) {
+            Home()
+        }
+        composable(Screen.BottomScreen.Brouse.bRoute) {
+            Browse()
+        }
+        composable(Screen.BottomScreen.Library.bRoute) {
+            Library()
+        }
+        composable(Screen.DrawerScreen.AddAccount.route) {
             AccountView()
         }
-        composable(Screen.DrawerScreen.Subscription.route){
+        composable(Screen.DrawerScreen.Subscription.route) {
             Subscription()
         }
     }
