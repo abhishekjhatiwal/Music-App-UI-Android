@@ -50,14 +50,10 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.wear.compose.material3.OpenOnPhoneDialogDefaults.Icon
 import com.example.musicappui.AccountDialog
 import com.example.musicappui.R
 import com.example.musicappui.screensInBottomNav
@@ -89,7 +85,7 @@ fun MainView() {
 
     val bottomBar: @Composable () -> Unit = {
         if (currentScreen is Screen.DrawerScreen || currentScreen is Screen.BottomScreen.Home) {
-            BottomNavigation(Modifier.wrapContentSize()) {
+            BottomNavigation(modifier.wrapContentSize()) {
                 screensInBottomNav.forEach { item ->
                     val isSelected = currentRoute == item.bRoute
                     val tint = if (isSelected) Color.White else Color.Black
@@ -272,7 +268,7 @@ fun Navigation(navController: NavController, viewModel: MainViewModel, pd: Paddi
         composable(Screen.BottomScreen.Home.bRoute) {
             Home()
         }
-        composable(Screen.BottomScreen.Brouse.bRoute) {
+        composable(Screen.BottomScreen.Browse.bRoute) {
             Browse()
         }
         composable(Screen.BottomScreen.Library.bRoute) {

@@ -8,7 +8,7 @@ sealed class Screen(val title: String, val route: String) {
     ):Screen(bTitle,bRoute){
         object Home : BottomScreen("Home", "home", R.drawable.ic_musci_player)
         object Library : BottomScreen("Library", "library", R.drawable.ic_library)
-        object Brouse: BottomScreen("Browse", "browse", R.drawable.ic_browse)
+        object Browse: BottomScreen("Browse", "browse", R.drawable.ic_browse)
     }
     sealed class DrawerScreen(val dTitle: String, val dRoute: String, @DrawableRes val icon: Int) :
         Screen(dRoute, dRoute) {
@@ -23,7 +23,7 @@ sealed class Screen(val title: String, val route: String) {
 val screensInBottomNav = listOf(
     Screen.BottomScreen.Home,
     Screen.BottomScreen.Library,
-    Screen.BottomScreen.Brouse
+    Screen.BottomScreen.Browse
 )
 
 val screensInDrawer = listOf(
