@@ -1,5 +1,6 @@
 package com.example.musicappui.ui.theme
 
+import android.app.Dialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -124,6 +126,11 @@ fun MainView() {
             topBar = {
                 TopAppBar(
                     title = { Text(title.value) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colors.primarySurface,
+                        titleContentColor = MaterialTheme.colors.onPrimary,
+                        actionIconContentColor = MaterialTheme.colors.onPrimary
+                    ),
                     actions = {
                         IconButton(onClick = {
                             scope.launch {
@@ -162,11 +169,13 @@ fun MainView() {
                             scope.launch {
                                 scaffoldState.drawerState.close()
                             }
-                            if (item.route != "add_account") {
+                            if (item.route == "add_account") {
                                 dialogOpen.value = true
                             } else {
                                 controller.navigate(item.dRoute)
                                 title.value = item.dTitle
+                                dialogOpen.value = false
+                            //    AccountDialog(dialogOpen = dialogOpen)
                             }
                         }
                     }
@@ -262,23 +271,26 @@ fun DrawerItem(
 fun Navigation(navController: NavController, viewModel: MainViewModel, pd: PaddingValues) {
     NavHost(
         navController = navController as NavHostController,
-        startDestination = Screen.DrawerScreen.AddAccount.route,
+        startDestination = Screen.BottomScreen.Home.bRoute,
         modifier = Modifier.padding(pd)
     ) {
         composable(Screen.BottomScreen.Home.bRoute) {
             Home()
+        }
+        composable(Screen.DrawerScreen.Account.route) {
+            AccountView()
+        }
+//        composable(Screen.DrawerScreen.AddAccount.route) {
+//            AccountDialog(dialogOpen)
+//        }
+        composable(Screen.DrawerScreen.Subscription.route) {
+            Subscription()
         }
         composable(Screen.BottomScreen.Browse.bRoute) {
             Browse()
         }
         composable(Screen.BottomScreen.Library.bRoute) {
             Library()
-        }
-        composable(Screen.DrawerScreen.AddAccount.route) {
-            AccountView()
-        }
-        composable(Screen.DrawerScreen.Subscription.route) {
-            Subscription()
         }
     }
 }
